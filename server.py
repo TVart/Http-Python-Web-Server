@@ -12,7 +12,7 @@ VALID_PAGES = {
 DEFAULT_PAGE = "/index.html"
 
 #This class will handles any incoming request from
-#the browser 
+#the browser
 class myHandler(BaseHTTPRequestHandler):
 	def do_RESPONSE(self,form):
 		self.send_response(200)
