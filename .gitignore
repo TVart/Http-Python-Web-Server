@@ -28,7 +28,7 @@
 
 # Mongo Explorer plugin:
 .idea/mongoSettings.xml
-app/mdb/journal
+/app/mdb/
 ## File-based project format:
 *.ipr
 *.iws
