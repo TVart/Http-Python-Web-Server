@@ -5,6 +5,7 @@ from jinja2 import Template
 import cgi
 
 class server(BaseHTTPRequestHandler):
+    articles = [{"id":1,"title":"titre1"},{"id":2,"title":"titre2"}]
     """Render the view"""
     def do_RESPONSE(self,form):
         self.send_response(200)
@@ -74,7 +75,7 @@ class server(BaseHTTPRequestHandler):
                 self.send_header('Content-type',mimetype)
                 self.end_headers()
                 template = Template(f.read())
-                render = template.render(articles=[{"id":1,"title":"titre1"},{"id":2,"title":"titre2"}],varbidon="Projekt")
+                render = template.render(articles=self.articles,varbidon="Projekt")
                 self.wfile.write(render)
                 f.close()
             return
