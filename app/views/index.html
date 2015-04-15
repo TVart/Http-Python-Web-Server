@@ -1,0 +1,14 @@
+<html>
+<header>
+<title>Pydata</title>
+</header>
+<body>
+<h1>Manage {{varbidon}}</h1>
+<a href="/new"><input type="button" value="Add +"></a>
+<ul>
+    {% for article in articles %}
+    <li><span>{{ article['title'] }} : </span><a href="/show/{{ article.id }}">See</a> | <a href="/edit/{{ article.id }}">Edit</a> | <a href="/delete/{{ article.id }}">Delete</a></li>
+    {% endfor %}
+</ul>
+</body>
+</html>
