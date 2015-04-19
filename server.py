@@ -2,10 +2,11 @@
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 from os import curdir, sep, path
 from jinja2 import Template
+from app.controllers import articles as tototo
 import cgi
 
 class server(BaseHTTPRequestHandler):
-    articles = [{"id":1,"title":"titre1"},{"id":2,"title":"titre2"}]
+    articles = list()
     """Render the view"""
     def do_RESPONSE(self,form):
         self.send_response(200)
@@ -32,6 +33,26 @@ class server(BaseHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
+    def do_REPLY(self):
+        sendReply = False
+        if self.path.endswith(".html"):
+            mimetype='text/html'
+            sendReply = True
+        if self.path.endswith(".jpg"):
+            mimetype='image/jpg'
+            sendReply = True
+        if self.path.endswith(".gif"):
+            mimetype='image/gif'
+            sendReply = True
+        if self.path.endswith(".js"):
+            mimetype='application/javascript'
+            sendReply = True
+        if self.path.endswith(".css"):
+            mimetype='text/css'
+            sendReply = True
+        return sendReply, mimetype
+
+
     #Handler for the POST requests
     def do_POST(self):
         if self.path=="/send":
@@ -45,34 +66,52 @@ class server(BaseHTTPRequestHandler):
 
     #Handler for the GET requests
     def do_GET(self):
+        route = str(self.path).split('/')
+        if(route.__len__() > 2):
+            controller = route[0]
+            action = route[1]
+            params = route[3]
+        else:
+            controller = route[0]
+            action = route[1]
+            params = 1
+
+        if(action == ''):
+            action = 'list'
+
+        to = tototo.Articles()
+        c = {
+            "author": "tvart",
+            "title" : "My 2nd article",
+            "text"  : "Hello world!\nMy first blog post!",
+            "tags"  : ["mongodb", "python", "pymongo"],
+            "date"  : ""
+        }
+        actions = {
+                'list'  : to.getAll(page=1),
+                'show'  : to.getOne(params),
+                'new'   : to.create(c),
+                'edit'  : to.getOne(params)
+        }
+
+        data = actions[str(action)]
+
+        for r in data:
+            self.articles.append(r)
+
         if str(self.path)=="/":
             self.path = "/app/views/index.html"
         else:
             self.path = "/app/views"+self.path+".html"
+        print self.path
         try:
-            #Check the file extension required and
-            #set the right mime type
-            sendReply = False
-            if self.path.endswith(".html"):
-                mimetype='text/html'
-                sendReply = True
-            if self.path.endswith(".jpg"):
-                mimetype='image/jpg'
-                sendReply = True
-            if self.path.endswith(".gif"):
-                mimetype='image/gif'
-                sendReply = True
-            if self.path.endswith(".js"):
-                mimetype='application/javascript'
-                sendReply = True
-            if self.path.endswith(".css"):
-                mimetype='text/css'
-                sendReply = True
+            #Check the file extension required and set the right mime type
+            sendReply = self.do_REPLY()
 
-            if sendReply == True:
+            if sendReply[0] == True:
                 f = open(curdir + sep + self.path)
                 self.send_response(200)
-                self.send_header('Content-type',mimetype)
+                self.send_header('Content-type',sendReply[1])
                 self.end_headers()
                 template = Template(f.read())
                 render = template.render(articles=self.articles,varbidon="Projekt")

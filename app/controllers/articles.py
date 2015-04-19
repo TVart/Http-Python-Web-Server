@@ -28,13 +28,18 @@ class Articles():
         db.users.find().skip(20).limit(10)
         db.users.find().skip(pagesize*(n-1)).limit(pagesize)
         """
-        return self.collection.find().skip(self.pagesize*(page-1)).limit(self.pagesize);
+        return self.collection.find().skip(10*(page-1)).limit(10).__iter__()
 
-    def getOne(self,key, value):
+    def getOne(self,data):
         return []
 
     def create(self,data):
-        pass
+        try:
+            data["date"] = datetime.datetime.utcnow()
+            article_id = self.collection.insert_one(data).inserted_id
+        except:
+            print "Can not insert data"
+        return article_id
 
     def edit(self,id,data):
         pass
