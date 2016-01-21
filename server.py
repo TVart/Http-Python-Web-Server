@@ -2,7 +2,7 @@
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 from os import curdir, sep, path
 import cgi
-
+from classes import users
 class myServer(BaseHTTPRequestHandler):
     """Render the view"""
     def do_RESPONSE(self,form):
@@ -11,6 +11,7 @@ class myServer(BaseHTTPRequestHandler):
         self.end_headers()
         # Send the html message
         self.wfile.write("<html><head><title>Title goes here.</title></head>")
+        #self.wfile.write(form)
         if "name" not in form or "addr" not in form:
             print "<H1>Error</H1>"
             print "Please fill in the name and addr fields."
@@ -62,22 +63,25 @@ class myServer(BaseHTTPRequestHandler):
 
     #Handler for the GET requests
     def do_GET(self):
-        #route = str(self.path).split('/')
         ressources = {
-            '/' : 'views/index.html'
+            '/' : 'views/index.html',
+            '/users' : 'views/users.html'
         };
         try:
+            u= users.User();
+            #first_name, last_name = "tootoo","tiitii";
             #Check the file extension required and set the right mime type
-            sendReply = self.do_REPLY(
-                ressources[self.path]
-            )
+            sendReply = self.do_REPLY(ressources[self.path])
+
             if sendReply[0] == True:
                 f = open(curdir + sep + ressources[self.path])
                 self.send_response(200)
                 self.send_header('Content-type',sendReply[1])
                 self.end_headers()
                 self.wfile.write("Requested URI is %s" % self.path)
-                self.wfile.write(f.read())
+                self.wfile.write(
+                    f.read() % u.all()
+                )
                 f.close()
             return
         except KeyError:
