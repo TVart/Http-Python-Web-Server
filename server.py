@@ -1,12 +1,9 @@
 #!/usr/bin/python
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 from os import curdir, sep, path
-from jinja2 import Template
-from app.controllers import articles as tototo
 import cgi
 
-class server(BaseHTTPRequestHandler):
-    articles = list()
+class myServer(BaseHTTPRequestHandler):
     """Render the view"""
     def do_RESPONSE(self,form):
         self.send_response(200)
@@ -33,25 +30,24 @@ class server(BaseHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
-    def do_REPLY(self):
+    def do_REPLY(self,path):
         sendReply = False
-        if self.path.endswith(".html"):
+        if path.endswith(".html"):
             mimetype='text/html'
             sendReply = True
-        if self.path.endswith(".jpg"):
+        if path.endswith(".jpg"):
             mimetype='image/jpg'
             sendReply = True
-        if self.path.endswith(".gif"):
+        if path.endswith(".gif"):
             mimetype='image/gif'
             sendReply = True
-        if self.path.endswith(".js"):
+        if path.endswith(".js"):
             mimetype='application/javascript'
             sendReply = True
-        if self.path.endswith(".css"):
+        if path.endswith(".css"):
             mimetype='text/css'
             sendReply = True
         return sendReply, mimetype
-
 
     #Handler for the POST requests
     def do_POST(self):
@@ -66,69 +62,34 @@ class server(BaseHTTPRequestHandler):
 
     #Handler for the GET requests
     def do_GET(self):
-        route = str(self.path).split('/')
-        if(route.__len__() > 2):
-            controller = route[0]
-            action = route[1]
-            params = route[3]
-        else:
-            controller = route[0]
-            action = route[1]
-            params = 1
-
-        if(action == ''):
-            action = 'list'
-
-        to = tototo.Articles()
-        c = {
-            "author": "tvart",
-            "title" : "My 2nd article",
-            "text"  : "Hello world!\nMy first blog post!",
-            "tags"  : ["mongodb", "python", "pymongo"],
-            "date"  : ""
-        }
-        actions = {
-                'list'  : to.getAll(page=1),
-                'show'  : to.getOne(params),
-                'new'   : to.create(c),
-                'edit'  : to.getOne(params)
-        }
-
-        data = actions[str(action)]
-
-        for r in data:
-            self.articles.append(r)
-
-        if str(self.path)=="/":
-            self.path = "/app/views/index.html"
-        else:
-            self.path = "/app/views"+self.path+".html"
-        print self.path
+        #route = str(self.path).split('/')
+        ressources = {
+            '/' : 'views/index.html'
+        };
         try:
             #Check the file extension required and set the right mime type
-            sendReply = self.do_REPLY()
-
+            sendReply = self.do_REPLY(
+                ressources[self.path]
+            )
             if sendReply[0] == True:
-                f = open(curdir + sep + self.path)
+                f = open(curdir + sep + ressources[self.path])
                 self.send_response(200)
                 self.send_header('Content-type',sendReply[1])
                 self.end_headers()
-                template = Template(f.read())
-                render = template.render(articles=self.articles,varbidon="Projekt")
-                self.wfile.write(render)
+                self.wfile.write("Requested URI is %s" % self.path)
+                self.wfile.write(f.read())
                 f.close()
             return
+        except KeyError:
+            self.send_error(404,'File Not Found: %s' % self.path)
         except IOError:
             self.send_error(404,'File Not Found: %s' % self.path)
 
 if __name__ == '__main__':
         try:
-            #Create a web server and define the handler to manage the
-            #incoming request
-            server = HTTPServer(("localhost", 8080), server)
-            print 'Started httpserver on port 8080'
+            server = HTTPServer(("localhost", 8888), myServer)
+            print 'Started httpserver on port 8888'
 
-            #Wait forever for incoming htto requests
             server.serve_forever()
 
         except KeyboardInterrupt:
