@@ -63,25 +63,31 @@ class myServer(BaseHTTPRequestHandler):
 
     #Handler for the GET requests
     def do_GET(self):
-        ressources = {
-            '/' : 'views/index.html',
-            '/users' : 'views/users.html'
+        #controller, action,param
+        resource = list(['/','','']);
+        route = self.path.split('/');
+        for i in route:
+            resource[route.index(i)-1]= i
+
+        resources = {
+            '/' : {
+                "view":'views/index.html'
+            },
+            'user' : {
+                "view":'views/users.html'
+            }
         };
         try:
             u= users.User();
-            #first_name, last_name = "tootoo","tiitii";
             #Check the file extension required and set the right mime type
-            sendReply = self.do_REPLY(ressources[self.path])
-
+            sendReply = self.do_REPLY(resources[self.path])
             if sendReply[0] == True:
-                f = open(curdir + sep + ressources[self.path])
+                f = open(curdir + sep + resources[self.path])
                 self.send_response(200)
                 self.send_header('Content-type',sendReply[1])
                 self.end_headers()
                 self.wfile.write("Requested URI is %s" % self.path)
-                self.wfile.write(
-                    f.read() % u.all()
-                )
+                self.wfile.write(f.read() % u.all())
                 f.close()
             return
         except KeyError:
