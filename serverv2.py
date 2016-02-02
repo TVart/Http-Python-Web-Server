@@ -34,10 +34,11 @@ class serverHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type','text/html')
                 self.end_headers()
                 user=model.Model()
-                u=user.find_user(params[2])
-                data="No Result"
+                u=user.find_user(params[2])                
                 if user:
                     self.wfile.write(f.read() % (u.id,u.name,u.email,u.phone))
+                else:
+                    self.wfile.write("Nothing to edit")
                 f.close()
                 return             
             if self.path.startswith("/show"):
@@ -50,14 +51,11 @@ class serverHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type','text/html')
                 self.end_headers()
                 user=model.Model()
-                u=user.find_user(params[2])
-                data="No Result"
-                if user:
-                    data=""
-                    data="<ul>"
-                    data+= "<li>Name : %s </li><li>Email : %s </li><li>Phone : %s </li>" % (u.name,u.email,u.phone)                        
-                    data+="</ul>"
-                self.wfile.write(f.read() % data)
+                u=user.find_user(params[2])                
+                if u:
+                    self.wfile.write(f.read() % (u.name,u.email,u.phone))
+                else:
+                    self.wfile.write("No user find to show")
                 f.close()
                 return                
             else:
