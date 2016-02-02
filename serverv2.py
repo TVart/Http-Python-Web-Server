@@ -3,7 +3,7 @@ import cgi
 from os import curdir, sep, path
 import model
 class serverHandler(BaseHTTPRequestHandler):
-    def do_GET(self):        
+    def do_GET(self):
         try:
             if self.path.endswith("/users"):
                 filename=curdir + sep + 'html' + self.path + '.html'
@@ -24,6 +24,22 @@ class serverHandler(BaseHTTPRequestHandler):
                 self.wfile.write(f.read() % data)
                 f.close()
                 return
+            if self.path.startswith("/edit"):
+                params=self.path.split("/");
+                print params
+                filename=curdir + sep + 'html' + sep + params[1] + '.html'
+                print filename
+                f=open(filename)
+                self.send_response(200)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                user=model.Model()
+                u=user.find_user(params[2])
+                data="No Result"
+                if user:
+                    self.wfile.write(f.read() % (u.id,u.name,u.email,u.phone))
+                f.close()
+                return             
             if self.path.startswith("/show"):
                 params=self.path.split("/");
                 print params
