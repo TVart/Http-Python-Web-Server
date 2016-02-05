@@ -4,8 +4,8 @@
 <form method="POST" enctype="multipart/form-data" action="/update">
 <input type="hidden" name="id" value="%s">
 Name : <input type="text" name="name" value="%s"><br/>
-Email : <input type="text" name="email" value="%s"><br/>
-Phone : <input type="text" name="phone" value="%s"><br/>
+Email : <input type="email" name="email" value="%s"><br/>
+Phone : <input type="tel" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" title="XXX-XXX-XXXX" name="phone" value="%s"><br/>
 <input type="submit" value="Update">
 </form>
 </body>

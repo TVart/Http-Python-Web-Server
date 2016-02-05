@@ -3,8 +3,8 @@
 <body>
 <form method="POST" enctype="multipart/form-data" action="/do_create">
 Name : <input type="text" name="name" value="" required><br/>
-Email : <input type="text" name="email" value=""><br/>
-Phone : <input type="text" name="phone" value=""><br/>
+Email : <input type="email" title="set valid email" name="email" value=""><br/>
+Phone : <input type="tel" name="phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" title="XXX-XXX-XXXX"><br/>
 <input type="submit" value="Create">
 </form>
 </body>

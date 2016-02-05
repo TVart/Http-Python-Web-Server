@@ -35,51 +35,45 @@ class serverHandler(BaseHTTPRequestHandler):
                 f.close()
                 return            
             if self.path.startswith("/edit"):
-                params=self.path.split("/");
-                print params
-                filename=curdir + sep + 'html' + sep + params[1] + '.html'
-                print filename
+                userID=self.path.split("/")[2];                
+                filename=curdir + sep + 'html' + sep + 'edit.html'                
                 f=open(filename)
                 self.send_response(200)
                 self.send_header('Content-type','text/html')
                 self.end_headers()
                 user=model.Model()
-                u=user.find_user(params[2])                
-                if user:
+                u=user.find_user(userID)
+                if user != []:
                     self.wfile.write(f.read() % (u.id,u.name,u.email,u.phone))
                 else:
                     self.wfile.write("Nothing to edit")
                 f.close()
                 return             
             if self.path.startswith("/show"):
-                params=self.path.split("/");
-                print params
-                filename=curdir + sep + 'html' + sep + params[1] + '.html'
-                print filename
+                userID=self.path.split("/")[2];                
+                filename=curdir + sep + 'html' + sep + 'show.html'                
                 f=open(filename)
                 self.send_response(200)
                 self.send_header('Content-type','text/html')
                 self.end_headers()
                 user=model.Model()
-                u=user.find_user(params[2])                
-                if u:
+                u=user.find_user(userID)
+                if u != []:
                     self.wfile.write(f.read() % (u.name,u.email,u.phone))
                 else:
                     self.wfile.write("No user find to show")
                 f.close()
                 return
             if self.path.startswith("/delete"):
-                params=self.path.split("/");
-                print params
-                filename=curdir + sep + 'html' + sep + params[1] + '.html'
-                print filename
+                userID=self.path.split("/")[2];
+                filename=curdir + sep + 'html' + sep + 'delete.html'                
                 f=open(filename)
                 self.send_response(200)
                 self.send_header('Content-type','text/html')
                 self.end_headers()
                 user=model.Model()
-                u=user.find_user(params[2])                
-                if u:
+                u=user.find_user(userID)
+                if u != []:
                     self.wfile.write(f.read() % (u.name,u.id,u.name))
                 else:
                     self.wfile.write("No user find to show")
@@ -92,8 +86,6 @@ class serverHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
-            self.send_response(301)
-            self.end_headers()
             if self.path.endswith("/update"):
                 ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))                        
                 if ctype == 'multipart/form-data':                
@@ -105,7 +97,10 @@ class serverHandler(BaseHTTPRequestHandler):
                         "phone" : fields['phone'][0],
                         "name" : fields['name'][0]
                     })
-                    self.wfile.write("<html><head><title>redirect</title><body>click <a href='/show/%s'>here</a> to go back</body></html>" % fields['id'][0])
+                self.send_response(301)
+                self.send_header('Content-type','text/html')
+                self.send_header('Location','/show/%s' % fields['id'][0])
+                self.end_headers()
             if self.path.endswith("/do_create"):
                 form = cgi.FieldStorage(
                     fp=self.rfile,
@@ -115,7 +110,10 @@ class serverHandler(BaseHTTPRequestHandler):
                 print form
                 user=model.Model()
                 user.create_user(form)
-                self.wfile.write("<html><head><title>redirect</title><body>User %s created with success.<br/>Click <a href='/users'>here</a> to go back</body></html>" % form.getvalue('name'))
+                self.send_response(301)
+                self.send_header('Content-type','text/html')
+                self.send_header('Location','/users')
+                self.end_headers()
             if self.path.endswith("/confirm_delete"):
                 form = cgi.FieldStorage(
                     fp=self.rfile,
@@ -124,7 +122,10 @@ class serverHandler(BaseHTTPRequestHandler):
                 )                
                 user=model.Model()
                 user.delete_user(form['id'].value)
-                self.wfile.write("<html><head><title>redirect</title><body>User %s deleted success.<br/>Click <a href='/users'>here</a> to go back</body></html>" % form.getvalue('name'))
+                self.send_response(301)
+                self.send_header('Content-type','text/html')
+                self.send_header('Location','/users')
+                self.end_headers()                
         except:
             pass
     
