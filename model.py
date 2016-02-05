@@ -18,46 +18,33 @@ class Model():
         user = self.session.query(User).filter_by(id=userid).one()
         return user
     
-    def update_users(self):
-        users=[
-            {'name':'User A', 'email':'hello@mailbox.com','phone': '06543210'},
-            {'name':'User B', 'email':'user@test.com'},
-            {'name':'User C', 'email':'admin@coucou.fr','phone': '02543210'},
-            {'name':'User D', 'phone': '06566898'},
-            {'name':'User E'},
-        ]
-        for u in users:
-            user=self.session.query(User).filter_by(name=u['name']).one()
-            if user:
-                try:
-                    user.email = u['email']
-                    self.session.add(user)
-                    self.session.commit()
-                except KeyError:
-                    print "User %s has no email" % u['name']
- 
-    def delete_user(self):
-        res = self.session.query(User).filter_by(email=None,phone=None).one()
+    def update_user(self,u):       
+        user=self.session.query(User).filter_by(id=u['id']).one()
+        if user:
+            try:
+                user.email = u['email']
+                user.name = u['name']
+                user.phone = u['phone']
+                self.session.add(user)
+                self.session.commit()
+            except KeyError:
+                print "Fail to update user %s" % u['name']
+        else:
+            print u
+
+    def delete_user(self,userid):
+        res = self.session.query(User).filter_by(id=userid).one()
         if res:
             self.session.delete(res)
             self.session.commit()
                          
-    def populate_users(self):
-        users=[
-            {'name':'User A', 'email':'hello@mailbox.com','phone': '06543210'},
-            {'name':'User B', 'email':'user@test.com'},
-            {'name':'User C', 'email':'admin@coucou.fr','phone': '02543210'},
-            {'name':'User D', 'phone': '06566898'},
-            {'name':'User E'},
-        ]
-        for user in users:
-            u = User(name=user['name'])
-            self.session.add(u)
-            self.session.commit()
+    def create_user(self,form):
+        print form
+        u = User(name=form.getvalue('name'),email=form.getvalue('email'),phone=form.getvalue('phone'))
+        print u
+        self.session.add(u)
+        self.session.commit()
  
 if __name__=="__main__":
     model = Model()
-    print model.__doc__    
-    model.delete_user()
-    """for u in model.get_users():
-        print "%s %s %s" % (u.name, u.email, u.phone)"""
+    print model.__doc__

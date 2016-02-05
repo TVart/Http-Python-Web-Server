@@ -1,105 +1,137 @@
-#!/usr/bin/python
-from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
-from os import curdir, sep, path
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import cgi
-from classes import users
-class myServer(BaseHTTPRequestHandler):
-    """Render the view"""
-    def do_RESPONSE(self,form):
-        self.send_response(200)
-        self.send_header('Content-type','text/html')
-        self.end_headers()
-        # Send the html message
-        self.wfile.write("<html><head><title>Title goes here.</title></head>")
-        #self.wfile.write(form)
-        if "name" not in form or "addr" not in form:
-            print "<H1>Error</H1>"
-            print "Please fill in the name and addr fields."
-            self.wfile.write("Please fill you name and your address")
-        else :
-            print "<p>name:", form["name"].value
-            print "<p>addr:", form["addr"].value
-            self.wfile.write("Hello %s !\n" % form["name"].value)
-            self.wfile.write("You live in %s !" % form["addr"].value)
-            self.wfile.write("</body></html>")
-            self.wfile.write("</body></html>")
-        return
-
-    #Handler for the HEAD requests
-    def do_HEAD(self):
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.end_headers()
-
-    def do_REPLY(self,path):
-        sendReply = False
-        if path.endswith(".html"):
-            mimetype='text/html'
-            sendReply = True
-        if path.endswith(".jpg"):
-            mimetype='image/jpg'
-            sendReply = True
-        if path.endswith(".gif"):
-            mimetype='image/gif'
-            sendReply = True
-        if path.endswith(".js"):
-            mimetype='application/javascript'
-            sendReply = True
-        if path.endswith(".css"):
-            mimetype='text/css'
-            sendReply = True
-        return sendReply, mimetype
-
-    #Handler for the POST requests
-    def do_POST(self):
-        if self.path=="/send":
-            form = cgi.FieldStorage(
-                fp=self.rfile,
-                headers=self.headers,
-                environ={'REQUEST_METHOD':'POST','CONTENT_TYPE':self.headers['Content-Type']}
-            )
-            self.do_RESPONSE(form)
-        return
-
-    #Handler for the GET requests
+from os import curdir, sep, path
+import model
+class serverHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        #controller, action,param
-        resource = list(['/','','']);
-        route = self.path.split('/');
-        for i in route:
-            resource[route.index(i)-1]= i
-
-        resources = {
-            '/' : {
-                "view":'views/index.html'
-            },
-            'user' : {
-                "view":'views/users.html'
-            }
-        };
         try:
-            u= users.User();
-            #Check the file extension required and set the right mime type
-            sendReply = self.do_REPLY(resources[self.path])
-            if sendReply[0] == True:
-                f = open(curdir + sep + resources[self.path])
+            if self.path.endswith("/users"):
+                filename=curdir + sep + 'html' + self.path + '.html'
+                print filename
+                f=open(filename)
                 self.send_response(200)
-                self.send_header('Content-type',sendReply[1])
+                self.send_header('Content-type','text/html')
                 self.end_headers()
-                self.wfile.write("Requested URI is %s" % self.path)
-                self.wfile.write(f.read() % u.all())
+                user=model.Model()
+                users=user.get_users()
+                data="No Result"
+                if users:
+                    data=""
+                    data="<table>"
+                    for u in users:
+                        data+= "<tr><td>" + u.name + "</td><td><a href='/show/%s'>show</a></td><td><a href='/edit/%s'>edit</a></td><td><a href='/delete/%s'>delete</a></td></tr>" % (u.id,u.id,u.id)
+                    data+="</table>"
+                self.wfile.write(f.read() % data)
                 f.close()
-            return
-        except KeyError:
-            self.send_error(404,'File Not Found: %s' % self.path)
-        except IOError:
-            self.send_error(404,'File Not Found: %s' % self.path)
+                return
+            if self.path.endswith("/create"):
+                filename=curdir + sep + 'html' + self.path + '.html'
+                print filename
+                f=open(filename)
+                self.send_response(200)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                self.wfile.write(f.read())
+                f.close()
+                return            
+            if self.path.startswith("/edit"):
+                params=self.path.split("/");
+                print params
+                filename=curdir + sep + 'html' + sep + params[1] + '.html'
+                print filename
+                f=open(filename)
+                self.send_response(200)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                user=model.Model()
+                u=user.find_user(params[2])                
+                if user:
+                    self.wfile.write(f.read() % (u.id,u.name,u.email,u.phone))
+                else:
+                    self.wfile.write("Nothing to edit")
+                f.close()
+                return             
+            if self.path.startswith("/show"):
+                params=self.path.split("/");
+                print params
+                filename=curdir + sep + 'html' + sep + params[1] + '.html'
+                print filename
+                f=open(filename)
+                self.send_response(200)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                user=model.Model()
+                u=user.find_user(params[2])                
+                if u:
+                    self.wfile.write(f.read() % (u.name,u.email,u.phone))
+                else:
+                    self.wfile.write("No user find to show")
+                f.close()
+                return
+            if self.path.startswith("/delete"):
+                params=self.path.split("/");
+                print params
+                filename=curdir + sep + 'html' + sep + params[1] + '.html'
+                print filename
+                f=open(filename)
+                self.send_response(200)
+                self.send_header('Content-type','text/html')
+                self.end_headers()
+                user=model.Model()
+                u=user.find_user(params[2])                
+                if u:
+                    self.wfile.write(f.read() % (u.name,u.id,u.name))
+                else:
+                    self.wfile.write("No user find to show")
+                f.close()
+                return
+            else:
+                raise IOError        
+        except IOError:            
+            self.send_error(404,"File not found %s" % self.path)
 
+    def do_POST(self):
+        try:
+            self.send_response(301)
+            self.end_headers()
+            if self.path.endswith("/update"):
+                ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))                        
+                if ctype == 'multipart/form-data':                
+                    fields=cgi.parse_multipart(self.rfile, pdict)                                                                    
+                    user=model.Model()                    
+                    user.update_user({
+                        "id" : fields['id'][0],
+                        "email" : fields['email'][0],
+                        "phone" : fields['phone'][0],
+                        "name" : fields['name'][0]
+                    })
+                    self.wfile.write("<html><head><title>redirect</title><body>click <a href='/show/%s'>here</a> to go back</body></html>" % fields['id'][0])
+            if self.path.endswith("/do_create"):
+                form = cgi.FieldStorage(
+                    fp=self.rfile,
+                    headers=self.headers,
+                    environ={'REQUEST_METHOD':'POST','CONTENT_TYPE':self.headers['Content-Type']}
+                )
+                print form
+                user=model.Model()
+                user.create_user(form)
+                self.wfile.write("<html><head><title>redirect</title><body>User %s created with success.<br/>Click <a href='/users'>here</a> to go back</body></html>" % form.getvalue('name'))
+            if self.path.endswith("/confirm_delete"):
+                form = cgi.FieldStorage(
+                    fp=self.rfile,
+                    headers=self.headers,
+                    environ={'REQUEST_METHOD':'DELETE','CONTENT_TYPE':self.headers['Content-Type']}
+                )                
+                user=model.Model()
+                user.delete_user(form['id'].value)
+                self.wfile.write("<html><head><title>redirect</title><body>User %s deleted success.<br/>Click <a href='/users'>here</a> to go back</body></html>" % form.getvalue('name'))
+        except:
+            pass
+    
 if __name__ == '__main__':
         try:
-            server = HTTPServer(("localhost", 8888), myServer)
+            server = HTTPServer(("localhost", 8888), serverHandler)
             print 'Started httpserver on port 8888'
-
             server.serve_forever()
 
         except KeyboardInterrupt:

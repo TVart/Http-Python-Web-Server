@@ -1,0 +1,14 @@
+<html>
+<head><title>Delete User</title></head>
+<body>
+Delete User %s ?<br/>
+<form method="POST" enctype="multipart/form-data" action="/confirm_delete">
+<input type="hidden" name="id" value="%s">
+<input type="hidden" name="name" value="%s">
+<input type="submit" value="Confirm Delete">
+<a href="/users">
+  <input type="button" value="Cancel" />
+</a>
+</form>
+</body>
+<html>
